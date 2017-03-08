@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans xmlns="http://www.springframework.org/schema/beans"  
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+        xmlns:security="http://www.springframework.org/schema/security"  
+        xmlns:context="http://www.springframework.org/schema/context"  
+        xmlns:aop="http://www.springframework.org/schema/aop"   
+        xmlns:tx="http://www.springframework.org/schema/tx"  
+        xmlns:jee="http://www.springframework.org/schema/jee"
+        xmlns:util="http://www.springframework.org/schema/util"
+        xmlns:mvc="http://www.springframework.org/schema/mvc"  
+        xsi:schemaLocation="http://www.springframework.org/schema/beans   
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd  
+        http://www.springframework.org/schema/context  
+    	http://www.springframework.org/schema/context/spring-context-4.3.xsd  
+   	 	http://www.springframework.org/schema/aop   
+    	http://www.springframework.org/schema/aop/spring-aop-4.3.xsd  
+    	http://www.springframework.org/schema/tx  
+        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd  
+        http://www.springframework.org/schema/jee   
+        http://www.springframework.org/schema/jee/spring-jee-4.3.xsd  
+        http://www.springframework.org/schema/security   
+        http://www.springframework.org/schema/security/spring-security-4.3.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+        
+        <bean id="dbcp" class="org.apache.commons.dbcp.BasicDataSource">
+        	<property name="username" value="root"></property>
+        	<property name="password" value="hai"></property>
+        	<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+        	<property name="url" value="jdbc:mysql:///kicomdb?useUnicode=true&amp;characterEncoding=utf8"></property>
+        
+        </bean>
+        
+        <bean id="ssf" class="org.mybatis.spring.SqlSessionFactoryBean">
+        	<property name="dataSource" ref="dbcp"></property>
+        	<property name="mapperLocations" value="classpath:org/kicom/note/sql/*.xml"></property>
+        
+        
+        </bean>
+        
+        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        	<property name="basePackage" value="org.kicom.note.dao"></property>
+        	<!-- 自动注入sqlsessionfactory -->
+        
+        
+        </bean>
+        
+        <!-- 开启扫描，扫描Controller，Service组件 -->
+        <context:component-scan base-package="org.kicom.note"></context:component-scan>
+        
+        <!-- handlermapping 支持@ResuestMapping @ResponseBody-->
+        <mvc:annotation-driven></mvc:annotation-driven>
+        
+        <!-- 配置事务管理组件 -->
+        <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        	<property name="dataSource" ref="dbcp"></property>
+        
+        </bean>
+        
+        <!-- 
+        <tx:annotation-driven transaction-manager="txManager"/>
+         -->
+        <!-- 开启事务注解标记@Transactional ↑ -->
+        <!-- 当调用带@Transaction标记方法时，将txManager事务管理功能切入进去 -->
+        
+        <!-- 指定方法 -->
+        <tx:advice id="txAdvice" transaction-manager="txManager">
+        	<tx:attributes>
+        		<tx:method name="regist"/>
+        		<tx:method name="checklogin"/>
+        		<tx:method name="add*"/>
+        	</tx:attributes>
+        </tx:advice>
+        
+        <!-- 指定组件 -->
+        <aop:config>
+        	<aop:pointcut expression="within(org.kicom.note.service..*)" id="target"/>
+        	<aop:advisor advice-ref="txAdvice" pointcut-ref="target"/>
+        	
+        </aop:config>
+        
+        <!-- 开启XML方法 ↑ -->
+        
+        <!-- AOP实例 -->
+        <bean id="noteLogger" class="org.kicom.note.aspect.NoteLogger"></bean>
+        <aop:config>
+        	<!-- 将noteLogger定义为切面组件 -->
+        	<aop:aspect ref="noteLogger">
+        		<!-- 什么时候？向哪些方法上切？ -->
+        		<aop:before method="clogger" pointcut="within(org.kicom.note.controller..*)"/>
+        	</aop:aspect>
+        
+        </aop:config>
+        
+        <!-- 开启AOP注解支持 -->
+        <aop:aspectj-autoproxy>
+        
+        </aop:aspectj-autoproxy>
+        
+        
+            
+</beans>

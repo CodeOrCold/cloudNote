@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>高级搜索</title>
+<script type="text/javascript">
+	$(function(){
+		$("#searchBtn").click(function(){
+			var title = $("#title").val().trim();
+			var status = $("#status").val();
+			var begin = $("#begin").val().trim();
+			var end = $("#end").val().trim();
+			//发送Ajax请求
+			$.ajax({
+				url:"http://localhost:8080/cloud_note/note/highSearch.do",
+				type:"post",
+				data:{"title":title,"status":status,"begin":begin,"end":end},
+				dataType:"json",
+				success:function(result){
+					if(result.status == 0){
+						var notes = result.data;
+						
+						$(#note_list).empty();
+						
+						for(var i=0;i<notes.length;i++){
+							var noteId = notes[i].cn_note_id;
+							var noteTitle = notes[i].cn_note_title;
+							var createTime = notes[i].cn_note_create_time;
+							var s_tr = "<tr><td>"+noteId+"</td><td>"+noteTitle+"</td><td>"+createTime+"</td></tr>";
+							
+							$("#note_list").append(s_tr);
+						}
+					}
+				}
+			});
+		});
+	});
+
+</script>
+
+</head>
+<body>
+	标题:<input type="text" id="title">
+	状态:<select id="status">
+		<option value="1">全部</option>
+		<option value="2">正常</option>
+		<option value="0">删除</option>
+	</select>
+	<br/>
+	开始日期:<input type="text" id="begin">
+	结束日期:<input type="text" id="end">
+	<input type="button" id="searchBtn" value="搜索">
+	<hr/>
+	<table id="note_list">
+	
+	</table>
+	
+	
+</body>
+
+
+
+
+</html>
